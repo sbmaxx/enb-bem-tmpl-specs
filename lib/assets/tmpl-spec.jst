@@ -15,7 +15,7 @@ var assert = require('assert'),
     'q', 'i', 'b', 'u', 's', 'bdo', 'em'
     ]},
     saveHtmlFile = function(filename, actual, done) {
-        fs.writeFile(path.join(__dirname, filename), beautifyHtml(actual), done);
+        fs.writeFile(filename, beautifyHtml(actual), done);
     },
 <% } %>
     clearRequire = require('${ paths['clear-require'] }'),
@@ -26,12 +26,20 @@ var assert = require('assert'),
         return JSON.parse(referencesJSON);
     };
 
+<%
+var prettifyEngineName = function(ngn, lang) {
+    return lang ? String(ngn).toLowerCase().replace(' ', '-') + '.' + lang : ngn;
+}
+%>
+
 describe('${ describe }', function() {
     <% _.forEach(its, function(it) { %>
     describe('${ it }', function() {
 
         <% _.forEach(engines, function(engine) {
             var lang = engine.lang;
+
+            lang = lang.isReal ? lang.name : null;
 
             print(template('it', {
                 it: it,
@@ -40,8 +48,9 @@ describe('${ describe }', function() {
                     'var engine = ' + loadTemplate(engine.target, engine.exportName) + ';',
                 ].join('\n'),
                 engine: engine,
-                lang: lang.isReal ? lang.name : null,
-                saveHtml: saveHtml
+                lang: lang,
+                saveHtml: saveHtml,
+                htmlPostfix: engines.length > 1 ? '.' + prettifyEngineName(engine.name, lang) + '.html' : '.html'
             }));
         }); %>
 
@@ -50,20 +59,20 @@ describe('${ describe }', function() {
 
 }); // /describe ${ describe }
 
-function assertHtml(actual, expected, done, filename) {
-<% if (saveHtml) {%>
+function assertHtmlAndSave(actual, expected, done, filename) {
     saveHtmlFile(filename, actual, function() {
-<% } %>
-    if (htmlDiffer.isEqual(actual, expected)) {
+        assertHtml(actual, expected);
+        done();
+    });
+}
+
+function assertHtml(actual, expected) {
+   if (htmlDiffer.isEqual(actual, expected)) {
         // Throw error if actual is empty
         assert.ok(actual);
-        done && done(null);
     } else {
         assert.fail(actual, expected, null, '\n');
     }
-<% if (saveHtml) {%>
-    });
-<% } %>
 }
 <%
 function loadTemplate(target, exportName) {
