@@ -116,6 +116,13 @@ BEM_TMPL_SPECS_REPORTERS=html,summary,spec
 BEM_TMPL_SPECS_SAVE_HTML=1
 ```
 
+Создание эталонов
+----------------------
+Для создания/обновления HTML эталонов вы можете либо выставить явно флаг `saveReferenceHtml` при конфигурации технологии, либо через переменную окружения:
+```sh
+BEM_TMPL_SPECS_SAVE_REFERENCE_HTML=1
+```
+
 Фильтрация тестов
 -----------------
 
@@ -231,7 +238,8 @@ module.exports = function (config) {
   - *Object* `options` — опции для ENB-технологии;
   - *Boolean* `async` — асинхронный шаблонизатор;
 * *String* `completeBundle` – имя бандла, в котором будут собраны все БЭМ-сущности из уровней `levels`. По умолчанию `completeBundle` не будет собран.
-* *Boolean* `saveHtml` — сохранять результат html при успешной отрисовке в файл (env: `BEM_TMPL_SPECT_SAVE_HTML`);
+* *Boolean* `saveHtml` — сохранять результат HTML при успешной отрисовке в файл (env: `BEM_TMPL_SPECS_SAVE_HTML`);
+* *Boolean* `saveReferenceHtml` — создать/обновить эталон HTML рядом с BEMJSON (env: `BEM_TMPL_SPECS_SAVE_REFERENCE_HTML`);
 * *String|Function* `depsTech` — технология для раскрытия зависимостей. По умолчанию — `deps-old`.
 * *Function* `mockI18N` — функция будет использована вместо ядра `i18n`, если указана опция `langs: true`.
 

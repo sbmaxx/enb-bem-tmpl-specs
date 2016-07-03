@@ -4,44 +4,46 @@ var titleSuffix = lang ? ' in `' + lang + '` lang' : '';
 var subreference = lang ? '[\'' + lang + '\']' : '';
 %>
 
-it('should be equal `${ it }` by ${ engine.name }${ titleSuffix }', function (<% if (saveHtml || engine.async) { %>done<% } %>) {
+it('should be equal `${ it }` by ${ engine.name }${ titleSuffix }', function () {
     ${ before }
 
     var ref = references['${ it }']${ subreference },
         bemjson = ref.bemjson,
         expected = ref.html;
 
-<% if (saveHtml) {%>
-    var filename = path.join(ref.dir, ref.name + '${ htmlPostfix }');
-<% }
+    <% if (saveHtml || saveReferenceHtml) { %>
+        var filenames = [];
+    <% } %>
 
-if (!engine.async) { %>
-    // sync mode
-    var actual = engine.apply(bemjson);
+    <% if (saveReferenceHtml) {%>
+        filenames.push(path.join(ref.dir, '${it}${ htmlPostfix }'));
+    <% } %>
 
+    <% if (saveHtml) {%>
+        filenames.push(path.join(__dirname, '${ it }${ htmlPostfix }'));
+    <% } %>
 
-<% if (saveHtml) { %>
-    assertHtmlAndSave(actual, expected, done, filename);
-<% } else {%>
-    assertHtml(actual, expected);
-<% }
-} else { // engine.async %>
-    // async mode
-    engine.apply(bemjson, function(errs, actual) {
-        if (errs !== null) {
-            done(errs);
-            return;
-        }
+    return new vow.Promise(function(resolve, reject) {
+        <% if (engine.async) { %>
+            engine.apply(bemjson, function(errs, actual) {
+                if (errs !== null) {
+                    reject(errs);
+                    return;
+                }
 
-        assertHtml(actual, expected);
-        <% if (saveHtml) {%>
-            saveHtmlFile(filename, actual, function() {
-                done();
+                resolve(actual);
             });
         <% } else { %>
-            done();
+            resolve(engine.apply(bemjson));
         <% } %>
-    });<%
-} %>
+    }).then(function(actual) {
+        <% if (saveHtml || saveReferenceHtml) { %>
+            return saveHtmlFile(filenames, actual).then(function() {
+                return assertHtml(actual, expected);
+            });
+        <% } else { %>
+            return assertHtml(actual, expected);
+        <% } %>
+    });
 
 });

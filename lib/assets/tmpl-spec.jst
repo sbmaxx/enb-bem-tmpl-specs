@@ -1,7 +1,8 @@
 var assert = require('assert'),
     path = require('path'),
-<% if (saveHtml) { %>
-    fs = require('fs'),
+    vow = require('vow'),
+<% if (saveHtml || saveReferenceHtml) { %>
+    vowFs = require('vow-fs'),
     beautifyHtml = function(html) {
         return require('${ paths['js-beautify'] }').html(html, beautifyHtmlConfig);
     },
@@ -14,8 +15,15 @@ var assert = require('assert'),
     'font', 'ins', 'del', 'pre', 'address', 'dt',
     'q', 'i', 'b', 'u', 's', 'bdo', 'em'
     ]},
-    saveHtmlFile = function(filename, actual, done) {
-        fs.writeFile(filename, beautifyHtml(actual), done);
+    saveHtmlFile = function(filenames, actual) {
+        if (!Array.isArray(filenames)) {
+            filenames = [filenames];
+        }
+        var html = beautifyHtml(actual);
+
+        return vow.all(filenames.map(function(filename) {
+            return vowFs.write(filename, html, 'utf8');
+        }));
     },
 <% } %>
     clearRequire = require('${ paths['clear-require'] }'),
@@ -28,7 +36,7 @@ var assert = require('assert'),
 
 <%
 var prettifyEngineName = function(ngn, lang) {
-    return lang ? String(ngn).toLowerCase().replace(' ', '-') + '.' + lang : ngn;
+    return String(ngn).toLowerCase().replace(' ', '-');
 }
 %>
 
@@ -37,9 +45,20 @@ describe('${ describe }', function() {
     describe('${ it }', function() {
 
         <% _.forEach(engines, function(engine) {
-            var lang = engine.lang;
+            var lang = engine.lang,
+                htmlPostfix = '';
 
             lang = lang.isReal ? lang.name : null;
+
+            if (engines.length > 1) {
+                htmlPostfix += '.' + prettifyEngineName(engine.name);
+            }
+
+            if (lang) {
+                htmlPostfix += '.' + lang;
+            }
+
+            htmlPostfix += '.html';
 
             print(template('it', {
                 it: it,
@@ -50,7 +69,8 @@ describe('${ describe }', function() {
                 engine: engine,
                 lang: lang,
                 saveHtml: saveHtml,
-                htmlPostfix: engines.length > 1 ? '.' + prettifyEngineName(engine.name, lang) + '.html' : '.html'
+                saveReferenceHtml: saveReferenceHtml,
+                htmlPostfix: htmlPostfix
             }));
         }); %>
 
@@ -58,13 +78,6 @@ describe('${ describe }', function() {
     <% }); %>
 
 }); // /describe ${ describe }
-
-function assertHtmlAndSave(actual, expected, done, filename) {
-    saveHtmlFile(filename, actual, function() {
-        assertHtml(actual, expected);
-        done();
-    });
-}
 
 function assertHtml(actual, expected) {
    if (htmlDiffer.isEqual(actual, expected)) {
