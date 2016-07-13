@@ -1,8 +1,8 @@
 var assert = require('assert'),
     path = require('path'),
-    vow = require('vow'),
+    vow = require('${ paths['vow'] }'),
 <% if (saveHtml || saveReferenceHtml) { %>
-    vowFs = require('vow-fs'),
+    vowFs = require('${ paths['vow-fs'] }'),
     beautifyHtml = function(html) {
         return require('${ paths['js-beautify'] }').html(html, beautifyHtmlConfig);
     },
