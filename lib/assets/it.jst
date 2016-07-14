@@ -16,11 +16,12 @@ it('should be equal `${ it }` by ${ engine.name }${ titleSuffix }', function () 
     <% } %>
 
     <% if (saveReferenceHtml) {%>
-        filenames.push(path.join(ref.dir, '${ it }${ htmlPostfix }'));
+        filenames.push(path.join(ref.dir, '${ filename }'));
+        referenceHTMLs.push(path.join(ref.dir, '${ filename }'));
     <% } %>
 
     <% if (saveHtml) {%>
-        filenames.push(path.join(__dirname, '${ it }${ htmlPostfix }'));
+        filenames.push(path.join(__dirname, '${ filename }'));
     <% } %>
 
     return new vow.Promise(function(resolve, reject) {

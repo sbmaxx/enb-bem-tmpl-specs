@@ -37,28 +37,43 @@ var assert = require('assert'),
 <%
 var prettifyEngineName = function(ngn) {
     return String(ngn).toLowerCase().replace(' ', '-');
+};
+
+var getHTMLFileName = function(it, ngn, lang, enginesCount) {
+    var filename = it;
+
+    if (enginesCount > 1) {
+        filename += '.' + prettifyEngineName(ngn);
+    }
+
+    if (lang) {
+        filename += '.' + lang;
+    }
+
+    filename += '.html';
+
+    return filename;
 }
 %>
 
 describe('${ describe }', function() {
     <% _.forEach(its, function(it) { %>
     describe('${ it }', function() {
+        var referenceHTMLs = [];
+
+        after(function() {
+            //if (referenceHTMLs.length > 1) {
+                console.log(referenceHTMLs);
+                referenceHTMLs.reduce(function(reference) {
+                    console.log(reference);
+                });
+            //}
+        });
 
         <% _.forEach(engines, function(engine) {
-            var lang = engine.lang,
-                htmlPostfix = '';
+            var lang = engine.lang;
 
             lang = lang.isReal ? lang.name : null;
-
-            if (engines.length > 1) {
-                htmlPostfix += '.' + prettifyEngineName(engine.name);
-            }
-
-            if (lang) {
-                htmlPostfix += '.' + lang;
-            }
-
-            htmlPostfix += '.html';
 
             print(template('it', {
                 it: it,
@@ -70,7 +85,7 @@ describe('${ describe }', function() {
                 lang: lang,
                 saveHtml: saveHtml,
                 saveReferenceHtml: saveReferenceHtml,
-                htmlPostfix: htmlPostfix
+                filename: getHTMLFileName(it, engine.name, lang, engines.length)
             }));
         }); %>
 
