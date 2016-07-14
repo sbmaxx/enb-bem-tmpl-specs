@@ -38,7 +38,7 @@ it('should be equal `${ it }` by ${ engine.name }${ titleSuffix }', function () 
         <% } %>
     }).then(function(actual) {
         <% if (saveHtml || saveReferenceHtml) { %>
-            return saveHtmlFile(filenames, actual).then(function() {
+            return saveHtmlFile(filenames, actual).always(function() {
                 return assertHtml(actual, expected);
             });
         <% } else { %>
